@@ -1,1 +1,1 @@
-from pygox.pygox import * 
+from pygox import * 
