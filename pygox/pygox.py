@@ -1,68 +1,33 @@
 """Python calls for the Mt Gox API."""
 
+import datetime 
+import decimal 
 import itertools 
-import time 
 import json
+import os
 import pycurl
 import StringIO
+import time 
 import urllib
-import decimal 
-import datetime 
-import os
+
+from .utils import * 
+from .record import *
 
 pycurl.global_init(pycurl.GLOBAL_SSL)
 
 SELL_TYPE = 1 
 BUY_TYPE = 2 
+VERSION = "0.0.1"
 
-def parse_json(string):
-    try:
-        return json.loads(string, parse_float=decimal.Decimal)
-    except ValueError:
-        raise ValueError("Malformed JSON response: %s" % (string,))
-
-def listify(gen):
-    "Convert a generator into a function which returns a list"
-    def patched(*args, **kwargs):
-        return list(gen(*args, **kwargs))
-    return patched
-
-class DictToAttrMapper:
-    MAPPER = {}
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            func = self.MAPPER.get(key, lambda x:x)
-            if func is not None:
-                setattr(self, key, func(value))
-
-    def __cmp__(self, other):
-        if isinstance(other, type(self)):
-            return cmp(tuple(self.__me__()), tuple(other.__me__()))
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
-    def __eq__(self, other):
-        return isinstance(other, type(self)) and not self.__cmp__(other)
-    
-    def __hash__(self):
-        return hash(tuple(self.__me__()))
-
-class DictToAttrMapperOnlyFields:
-    def __init__(self, **kwargs):
-        for key, value in kwargs.items():
-            if key not in self.FIELDS: continue 
-            func = self.MAPPER.get(key, lambda x:x)
-            if func is not None:
-                setattr(self, key, func(value))
+USER_AGENT = ["UserAgent: PYGox Version " + VERSION]
 
 
-class Order(DictToAttrMapper):
+class Order(DictToAttrRecord):
 
     @classmethod
     def parse(cls, parse, message=None):
-        by_order_type = {1:SellOrder,
-                         2:BuyOrder}
+        by_order_type = {SellOrder.TYPE:SellOrder,
+                         BuyOrder.TYPE:BuyOrder}
         return by_order_type.get(int(parse['type'])).parse(parse, message)
         
 
@@ -95,7 +60,6 @@ class SellOrder(SubOrder):
     def __str__(self):
         return "<SellOrder amount=%s date=%s status=%s priority=%s price=%s dark=%s oid=%s>" % (
             self.amount, self.date, self.status, self.priority, self.price, self.dark, self.oid)
-
     order_type = SELL_TYPE
 
 class BuyOrder(SubOrder):
@@ -104,7 +68,7 @@ class BuyOrder(SubOrder):
             self.amount, self.date, self.status, self.priority, self.price, self.dark, self.oid)
     order_type = BUY_TYPE
 
-class Trade(DictToAttrMapperOnlyFields):
+class Trade(DictToAttrRecordOnlyFields):
     FIELDS = set(['price', 'tid', 'amount', 'date'])
     MAPPER = dict(price=decimal.Decimal,
                   tid = long,
@@ -115,13 +79,13 @@ class Trade(DictToAttrMapperOnlyFields):
         return "<Trade price=%s amount=%s date=%s tid=%s>" % (
             self.price, self.amount, self.date, self.tid)
     
-class Funds(DictToAttrMapper):
+class Funds(DictToAttrRecord):
     def __str__(self):
         return "<Funds usd=%s, btc=%s>" % (self.usds, self.btcs)
 
-class Ticker(DictToAttrMapper):
+class Ticker(DictToAttrRecord):
     def __init__(self, **kwargs):
-        DictToAttrMapper.__init__(self, **kwargs['ticker'])
+        DictToAttrRecord.__init__(self, **kwargs['ticker'])
 
     def __str__(self):
         return "<Ticker buy=%s, sell=%s, last=%s, vol=%s, high=%s, low=%s, avg=%s>" % self.__me__()
@@ -137,9 +101,6 @@ class Bid():
 
     def __str__(self):
         return "<Bid price=%s, volume=%s>" % (self.price, self.volume)
-
-
-USER_AGENT = ["UserAgent: PYGox Version 0.01"]
 
 class UseLibCurl:
 
