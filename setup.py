@@ -4,17 +4,20 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+from pygox import VERSION 
+
 setup(
     name = "pygox",
-    version = "0.0.0",
+    version = VERSION,
     author = "Adam DePrince",
     author_email = "deprince@googlealumni.com",    
     description = "A API to MtGox",
     license = "GPLV3",
     keywords = "btc bitcoin mtgox",
     url = "http://adamdeprince.com/pygox",
-    download_url = "http://adamdeprince.com/pygox/pygox-0.0.0.tar.gz",
+    download_url = "http://adamdeprince.com/pygox/pygox-%(VERSION)s.tar.gz" % vars(),
     requires = ["pycurl"],
     packages=["pygox"],
+    scripts=["commands/pygox_buy", "commands/pygox_sell"]
     # long_description=read('README'),
 )
