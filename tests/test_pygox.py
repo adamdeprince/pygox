@@ -63,5 +63,6 @@ class TestSellOrder(unittest.TestCase):
         self.assertTrue(isinstance(self.order.dark, bool))
 
     
+    
 if __name__ == "__main__":
     unittest.main()
