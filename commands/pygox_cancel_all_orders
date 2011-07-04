@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """Cancel all outstanding Sell orders."""
+import pygox
 
-robot = pygox.RobotConnection().cancelAllOrders()
+pygox.RobotConnection().cancelAllOrders()
 
 

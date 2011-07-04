@@ -15,17 +15,7 @@ pycurl.global_init(pycurl.GLOBAL_SSL)
 SELL_TYPE = 1 
 BUY_TYPE = 2 
 
-def parse_json(string):
-    try:
-        return json.loads(string, parse_float=decimal.Decimal)
-    except ValueError:
-        raise ValueError("Malformed JSON response: %s" % (string,))
-
-def listify(gen):
-    "Convert a generator into a function which returns a list"
-    def patched(*args, **kwargs):
-        return list(gen(*args, **kwargs))
-    return patched
+from .utils import parse_json, listify
 
 class DictToAttrMapper:
     MAPPER = {}
@@ -79,7 +69,9 @@ class Order(DictToAttrMapper):
     @listify
     def parse_many(cls, orders):
         message = orders.get('status')
+        print orders
         orders = orders['orders']
+
         for order in orders:
             yield cls.parse(order, message)
         
@@ -202,7 +194,7 @@ class AuthenticatedConnection(Connection):
         params['pass'] = self.password
         data = self._post("https://mtgox.com/code/%s.php" % (function,),
                    **params)
-        return json.loads(data, parse_float=decimal.Decimal)
+        return parse_json(data)
 
     def getFunds(self):
         return Funds(**self.post('getFunds'))

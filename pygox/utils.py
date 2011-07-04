@@ -3,9 +3,16 @@ import json
 from .constants import * 
 import sys 
 
+class MtGoxException(Exception):
+    pass
+                      
+
 def parse_json(string):
     try:
-        return json.loads(string, parse_float=decimal.Decimal)
+        value = json.loads(string, parse_float=decimal.Decimal)
+        if 'error' in value:
+            raise MtGoxException(value['error'])
+        return value 
     except ValueError:
         raise ValueError("Malformed JSON response: %s" % (string,))
 

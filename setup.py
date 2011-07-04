@@ -18,6 +18,6 @@ setup(
     download_url = "http://adamdeprince.com/pygox/pygox-%(VERSION)s.tar.gz" % vars(),
     requires = ["pycurl"],
     packages=["pygox"],
-    scripts=["commands/pygox_buy", "commands/pygox_sell"]
+    scripts=["commands/pygox_buy", "commands/pygox_sell", "commands/pygox_cancel_all_orders", "commands/pygox_spot"]
     # long_description=read('README'),
 )

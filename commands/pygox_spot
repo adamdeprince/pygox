@@ -1,0 +1,9 @@
+#!python
+
+import pygox.utils
+import sys
+import pygox
+
+if __name__ == "__main__":
+    print pygox.AuthenticatedConnection().getTicker().last
+
